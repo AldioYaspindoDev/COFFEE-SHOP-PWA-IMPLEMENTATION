@@ -965,4 +965,441 @@ Validation should be performed on the server even when the frontend already vali
 
 Authentication establishes who the user is. Authorization determines what that user is permitted to do.
 
-Administrative routes and mutation endpoints must verify permissions on the server. Hiding
+Administrative routes and mutation endpoints must verify permissions on the server. Hiding a navigation link or button in the UI is not an authorization mechanism.
+
+### 3. Database Transactions
+
+Operations that create an order and its order items should use a database transaction so that related records are not partially committed.
+
+Prices and totals must be calculated or verified on the server rather than trusted from client-submitted values.
+
+### 4. Error Handling
+
+Use consistent API error responses and log unexpected failures on the server.
+
+Do not expose stack traces, database connection strings, OTP values, or other sensitive implementation details to clients.
+
+### 5. Environment Variables
+
+Keep database credentials and cryptographic secrets outside the source code.
+
+Do not commit `.env` files containing real credentials.
+
+Provide a documented `.env.example` containing variable names and placeholder values only.
+
+### 6. PWA Cache Security
+
+Do not cache authentication responses, private user data, or administrative API responses indiscriminately.
+
+Use explicit cache rules based on resource type and sensitivity.
+
+When a user logs out, consider how private data already cached by the browser should be invalidated.
+
+### 7. Code Quality
+
+Use TypeScript, ESLint, runtime validation, and automated tests to detect errors before deployment.
+
+Keep feature modules cohesive and avoid unnecessary duplication.
+
+### 8. Accessibility
+
+Use semantic HTML, accessible form labels, keyboard navigation, visible focus states, sufficient color contrast, and appropriate accessible names for interactive controls.
+
+### 9. Observability
+
+Use structured server-side logging and monitor production errors, failed API requests, and database connectivity.
+
+Avoid logging personal information or authentication secrets.
+
+### 10. Dependency Management
+
+Keep dependencies updated and review security advisories.
+
+Use the committed lockfile for reproducible dependency installation.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+Install the following tools:
+
+- Node.js compatible with the installed Next.js version.
+- npm.
+- PostgreSQL.
+- Git.
+
+Check the installed versions:
+
+```bash
+node --version
+npm --version
+```
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/AldioYaspindoDev/CoffeeShop.git
+
+cd CoffeeShop
+```
+
+### 2. Install Dependencies
+
+```bash
+npm ci
+```
+
+Use `npm install` instead if you intentionally need to update the lockfile or resolve dependency changes.
+
+### 3. Configure Environment Variables
+
+Create a local `.env` file based on the variables required by the application.
+
+At minimum, configure the PostgreSQL connection used by Prisma.
+
+Example:
+
+```dotenv
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/coffee_shop"
+```
+
+Replace the example values with the credentials and database name for your local environment.
+
+Do not use real production credentials in documentation or commit them to version control.
+
+### 4. Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+### 5. Apply Database Migrations
+
+For a database that has already been created and is intended to follow the committed migration history:
+
+```bash
+npx prisma migrate deploy
+```
+
+For local development, after verifying the schema and migration history, use:
+
+```bash
+npx prisma migrate dev
+```
+
+Do not use development migration commands as a substitute for a reviewed production migration process.
+
+### 6. Start the Development Server
+
+```bash
+npm run dev
+```
+
+Open the application at:
+
+`http://localhost:3000`
+
+The development environment does not register the service worker because registration is restricted to production mode in the current implementation.
+
+---
+
+## Environment Configuration
+
+The application should use environment variables for configuration that varies between development, testing, and production.
+
+Example `.env.example`:
+
+```dotenv
+# PostgreSQL
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/coffee_shop"
+
+# Add additional variables here when required by the implemented services.
+```
+
+If session signing keys, OTP delivery credentials, or external service credentials are introduced, document their variable names here without including real values.
+
+Keep the following files and values out of version control:
+
+- Real database passwords.
+- Production API credentials.
+- Session signing keys.
+- OTP provider credentials.
+- Private deployment configuration.
+
+---
+
+## Database Setup
+
+The application uses Prisma to manage the PostgreSQL schema.
+
+Useful commands:
+
+### Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+### Create a Development Migration
+
+```bash
+npx prisma migrate dev --name describe_your_change
+```
+
+Replace `describe_your_change` with a meaningful migration name.
+
+### Apply Existing Migrations
+
+```bash
+npx prisma migrate deploy
+```
+
+### Inspect the Database
+
+```bash
+npx prisma studio
+```
+
+Prisma Studio provides a browser-based interface for inspecting database records.
+
+Use migrations to keep schema changes reproducible across development, staging, and production environments.
+
+---
+
+## Running the Application
+
+### Development
+
+```bash
+npm run dev
+```
+
+### Production Build
+
+```bash
+npm run build
+```
+
+The build script generates Prisma Client before running the Next.js production build.
+
+### Start the Production Server
+
+```bash
+npm run start
+```
+
+Run the production server after successfully building the application.
+
+### Lint the Codebase
+
+```bash
+npm run lint
+```
+
+Run linting before committing significant changes.
+
+---
+
+## Testing and Code Quality
+
+The repository includes an ESLint configuration and a lint script.
+
+For stronger industry-standard quality assurance, the project should also include automated tests.
+
+### Recommended Testing Layers
+
+| Test Type | Purpose |
+|---|---|
+| Unit tests | Verify isolated business rules and utility functions. |
+| Integration tests | Verify services, repositories, and database interactions. |
+| API tests | Verify request validation, status codes, and response contracts. |
+| Component tests | Verify important UI behavior and interactions. |
+| End-to-end tests | Verify complete user journeys through the browser. |
+| PWA tests | Verify installation behavior, caching, offline fallback, and service worker updates. |
+| Security tests | Verify authentication, authorization, input validation, and access boundaries. |
+
+### Recommended CI Pipeline
+
+A continuous integration workflow should run:
+
+1. Dependency installation.
+2. TypeScript checks.
+3. ESLint.
+4. Unit and integration tests.
+5. Production build.
+6. Optional browser-based end-to-end tests.
+7. Security and dependency checks.
+
+Only deploy when the required checks succeed.
+
+These are recommended quality gates; they should not be interpreted as existing CI automation unless corresponding workflows are present in the repository.
+
+---
+
+## PWA Testing Checklist
+
+PWA behavior must be verified in a production build and on the browsers and devices the application intends to support.
+
+### Installation
+
+- [ ] Manifest is accessible.
+- [ ] Application name and short name are correct.
+- [ ] Icons load successfully.
+- [ ] The application opens in the intended display mode when installed.
+- [ ] Installation guidance is appropriate for supported browsers.
+- [ ] Installation is tested on Android and iOS where applicable.
+
+### Service Worker
+
+- [ ] Service worker registers successfully in production.
+- [ ] Installation completes without a failed precache request.
+- [ ] Activation removes obsolete caches safely.
+- [ ] Updates to the service worker are handled correctly.
+- [ ] Old application assets do not remain indefinitely in the cache.
+- [ ] Service worker failures do not break ordinary online navigation.
+
+### Offline Experience
+
+- [ ] The application displays an offline fallback when appropriate.
+- [ ] Previously cached resources remain available when expected.
+- [ ] Uncached routes fail gracefully.
+- [ ] API mutations are not silently treated as successful offline operations.
+- [ ] Dynamic content clearly distinguishes cached information from current server data.
+- [ ] Sensitive information is not served from an inappropriate cache.
+
+### Performance and Accessibility
+
+- [ ] Images use appropriate formats and dimensions.
+- [ ] Important pages load efficiently on mobile connections.
+- [ ] Navigation and forms are keyboard accessible.
+- [ ] Interactive controls have accessible labels.
+- [ ] Layouts work on narrow mobile screens.
+- [ ] Color contrast and focus indicators are adequate.
+
+### Recommended Tools
+
+Use browser developer tools to inspect:
+
+- Service worker registration.
+- Manifest validity.
+- Cache Storage.
+- Offline request behavior.
+- Failed network requests.
+- Console errors.
+
+Use Lighthouse or equivalent auditing tools to evaluate performance, accessibility, best practices, and PWA-related behavior.
+
+Passing an audit is useful evidence, but it does not guarantee that every offline workflow or security requirement has been satisfied.
+
+---
+
+## Current Implementation and Improvements
+
+The following table distinguishes existing code from improvements that should be considered.
+
+| Area | Current Implementation | Recommended Improvement |
+|---|---|---|
+| Application framework | Next.js App Router | Keep route handlers thin and business logic modular. |
+| Type safety | TypeScript | Add mandatory type-checking to CI. |
+| Database | PostgreSQL and Prisma | Maintain reviewed migrations and enforce database constraints. |
+| Feature architecture | Validators, services, and repositories | Add unit and integration tests for each feature. |
+| PWA manifest | `public/manifest.json` | Verify icon dimensions, maskable icons, and browser compatibility. |
+| Service worker | `public/sw.js` | Introduce explicit cache strategies by resource type. |
+| Offline page | `app/offline/page.tsx` | Test navigation fallback and cache behavior across routes. |
+| Installation prompt | `components/ui/installPrompt.tsx` | Test installation behavior on supported platforms. |
+| Authentication foundation | OTP utilities and authentication modules | Verify complete OTP lifecycle, sessions, and server-side access control. |
+| API validation | Zod schemas | Standardize validation errors and API response formats. |
+| Database access | Prisma Client singleton | Verify connection-pool lifecycle and production runtime configuration. |
+| Testing | ESLint script | Add unit, integration, API, and end-to-end tests. |
+| Deployment quality | Production build script | Add CI checks, monitoring, and deployment validation. |
+
+### Important PWA Improvements
+
+The current service worker caches successful same-origin responses without differentiating API data from static resources.
+
+This can cause stale data or inappropriate responses if dynamic endpoints are cached without a defined policy.
+
+A stronger implementation should:
+
+1. Cache only explicitly approved public resources.
+2. Use different strategies for static assets and dynamic content.
+3. Avoid caching authentication and administrative endpoints.
+4. Define how cached data expires or is refreshed.
+5. Normalize navigation requests for offline fallback matching.
+6. Handle failed pre-caching gracefully.
+7. Test service worker updates and cache invalidation.
+8. Provide clear UI feedback when data may be stale.
+
+### Important Architecture Improvements
+
+The following improvements would strengthen the application's production readiness:
+
+1. Add consistent error handling across API endpoints.
+2. Enforce server-side authorization for administrative operations.
+3. Add rate limiting to sensitive authentication endpoints.
+4. Use database transactions for multi-record operations.
+5. Add automated tests for business logic and APIs.
+6. Standardize environment configuration.
+7. Add CI checks for type errors, linting, tests, and production builds.
+8. Add structured logging and production monitoring.
+9. Review database indexes and query performance.
+10. Verify accessibility and responsive behavior across real devices.
+
+---
+
+## Roadmap
+
+### Phase 1 — PWA Reliability
+
+- [ ] Validate the Web App Manifest.
+- [ ] Verify all required precache assets.
+- [ ] Separate static-asset caching from dynamic API caching.
+- [ ] Add explicit offline behavior for supported pages.
+- [ ] Test service worker lifecycle and update handling.
+- [ ] Verify installation on supported browsers.
+- [ ] Audit cached data for privacy and correctness.
+
+### Phase 2 — Architecture and Code Quality
+
+- [ ] Standardize API response formats.
+- [ ] Add centralized error handling.
+- [ ] Enforce request validation on every mutation endpoint.
+- [ ] Add service and repository tests.
+- [ ] Add TypeScript checks to CI.
+- [ ] Document environment variables and setup procedures.
+- [ ] Review database transactions and constraints.
+
+### Phase 3 — Security
+
+- [ ] Complete and verify the OTP authentication flow.
+- [ ] Add secure session management.
+- [ ] Protect administrative routes and API endpoints.
+- [ ] Implement OTP expiration and attempt limits.
+- [ ] Add rate limiting.
+- [ ] Audit dependency security.
+- [ ] Review cache behavior for sensitive data.
+
+### Phase 4 — Performance and Observability
+
+- [ ] Measure mobile performance.
+- [ ] Optimize image loading and asset delivery.
+- [ ] Add database indexes where justified.
+- [ ] Monitor API latency and error rates.
+- [ ] Add production error reporting.
+- [ ] Establish deployment checks and rollback procedures.
+
+---
+
+## Conclusion
+
+COFFEE is a full-stack web application built with a focus on **Progressive Web App capabilities, mobile-first experience, and maintainable software architecture**.
+
+The application combines Next.js, React, TypeScript, PostgreSQL, and Prisma with a feature-based backend structure. Its PWA foundation includes a Web App Manifest, service worker registration, caching logic, an offline page, and installation guidance.
+
+The project also demonstrates architectural separation through API route handlers, validators, services, repositories, and a shared database client.
+
+The next stage is to strengthen the implementation with explicit caching policies, comprehensive offline testing, server-side authorization, secure OTP lifecycle management, automated tests, and continuous integration.
+
+The goal is not simply to make a website installable, but to develop a reliable, maintainable, and secure web application that delivers a consistent experience across supported devices and network conditions.
